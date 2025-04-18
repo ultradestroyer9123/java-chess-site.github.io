@@ -1,8 +1,9 @@
 import java.util.ArrayList;
 
 public class ChessEngine {
-  private static String board;
+  private String board;
   private int turn = 0;
+  private String color = "white";
 
   public ArrayList<String> getLegalMoves(String pieceAt) {
     ArrayList<String> legalMoves = new ArrayList<>();
@@ -411,7 +412,7 @@ public class ChessEngine {
     return turn;
   }
 
-  public static boolean isIllegalMove(int turn, String color, String position1, String position2) {
+  public boolean isIllegalMove(int turn, String color, String position1, String position2) {
     if (turn % 2 == 0 && color.equals("black")) {
       return true;
     } else if (turn % 2 == 1 && color.equals("white")) {
@@ -420,11 +421,379 @@ public class ChessEngine {
     return inCheck(simulateMove(position1, position2), color);
   }
 
-  public static boolean inCheck(String boardP, String color) {
-    return false; // Need actual check logic here
+  public boolean inCheck(String boardP, String color) {
+    // Determine the king's symbol based on color
+    String kingSymbol = color.equals("white") ? "K" : "k";
+    
+    // Find the king's position
+    int[] pos = findPiece(boardP, kingSymbol);
+    if (pos == null) {
+      // King not found on the board
+      return false;
+    }
+
+    // Convert the position to chess notation
+    String chessPos = convertIntArrayToPosition(pos);
+
+    // Determine the opposite color
+    String oppositeColor = color.equals("white") ? "black" : "white";
+
+    // Check if any piece of the opposite color can capture the king
+    return pieceOfOppositeColorCanCapturePosition(boardP, chessPos, oppositeColor);
   }
 
-  public static String getPositionOffsetOf(String position, int xOffset, int yOffset) {
+  public boolean pieceOfOppositeColorCanCapturePosition(String boardP, String positionOfCapture, String color) {
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        String piece = boardP.charAt(i * 8 + j) + "";
+        if (piece.equals(" ") || !isOpponentPiece(color, piece)) {
+          continue;
+        }
+        String pieceLowered = piece.toLowerCase();
+        String piecePos = convertIntArrayToPosition(new int[] { i, j });
+        if (pieceLowered.equals("p")) {
+          if (getOppositeColor(color).equals("black")) {
+            if (isValidAndEquals(piecePos, positionOfCapture, -1, -1) || isValidAndEquals(piecePos, positionOfCapture, 1, -1)) {
+              return true;
+            }
+          } else if (getOppositeColor(color).equals("white")) {
+            if (isValidAndEquals(piecePos, positionOfCapture, -1, 1) || isValidAndEquals(piecePos, positionOfCapture, 1, 1)) {
+                return true;
+            }
+          }
+        } else if (pieceLowered.equals("n")) {
+          if (isValidAndEquals(piecePos, positionOfCapture, -2, 1) || isValidAndEquals(piecePos, positionOfCapture, -2, -1)
+              || isValidAndEquals(piecePos, positionOfCapture, 2, 1) || isValidAndEquals(piecePos, positionOfCapture, 2, -1)
+              || isValidAndEquals(piecePos, positionOfCapture, 1, 2) || isValidAndEquals(piecePos, positionOfCapture, 1, -2)
+              || isValidAndEquals(piecePos, positionOfCapture, -1, 2) || isValidAndEquals(piecePos, positionOfCapture, -1, -2)) {
+            return true;
+          }
+        } else if (pieceLowered.equals("k")) {
+          if (isValidAndEquals(piecePos, positionOfCapture, -1, 0) || isValidAndEquals(piecePos, positionOfCapture, 1, 0)
+              || isValidAndEquals(piecePos, positionOfCapture, 0, 1) || isValidAndEquals(piecePos, positionOfCapture, 0, -1)
+              || isValidAndEquals(piecePos, positionOfCapture, -1, 1) || isValidAndEquals(piecePos, positionOfCapture, 1, 1)
+              || isValidAndEquals(piecePos, positionOfCapture, -1, -1) || isValidAndEquals(piecePos, positionOfCapture, 1, -1)) {
+            return true;
+          }
+        } else if (pieceLowered.equals("b")) {
+          // top left
+          int offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, -offset, offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // top right
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, offset, offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // bottom left
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, -offset, -offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // bottom right
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, offset, -offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+        } else if (pieceLowered.equals("r")) {
+          // up
+          int offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, 0, offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // down
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, 0, -offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // left
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, -offset, 0);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // right
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, offset, 0);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+        } else if (pieceLowered.equals("q")) {
+          // top left
+          int offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, -offset, offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // top right
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, offset, offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // bottom left
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, -offset, -offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // bottom right
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, offset, -offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // up
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, 0, offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // down
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, 0, -offset);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // left
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, -offset, 0);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          // right
+          offset = 0;
+          while (true) {
+            offset++;
+            String posOffsetOf = getPositionOffsetOf(piecePos, offset, 0);
+            if (isValidPosition(posOffsetOf)) {
+              if (isPieceAt(posOffsetOf).equals(" ")) {
+                continue;
+              } else if (posOffsetOf.equals(positionOfCapture)) {
+                return true;
+              } else {
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  public String getColor() {
+    return color;
+  }
+
+  public boolean isValidAndEquals(String piecePos, String positionOfCapture, int offsetX, int offsetY) {
+    return isValidPosition(getPositionOffsetOf(piecePos, offsetX, offsetY)) && getPositionOffsetOf(piecePos, offsetX, offsetY).equals(positionOfCapture);
+  }
+
+  public boolean isOpponentPiece(String color, String piece) {
+    return ((piece.equals(piece.toUpperCase()) ? "white" : "black") != color);
+  }
+
+  public String getOppositeColor(String color) {
+    return color.equals("white") ? "black" : "white";
+  }
+
+  public int[] findPiece(String boardP, String piece) {
+    int[] pos = new int[2];
+    String[][] board2d = convertBoardTo2d(boardP);
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        if (board2d[i][j].equals(piece)) {
+          pos[0] = i;
+          pos[1] = j;
+          return pos;
+        }
+      }
+    }
+    return null; // Return null if the piece is not found
+  }
+
+  public String getWhosMove() {
+    return turn % 2 == 0 ? "white" : "black";
+  }
+
+
+
+  public String getPositionOffsetOf(String position, int xOffset, int yOffset) {
     int[] pos = convertPositionToIntArray(position);
     int newRank = pos[0] + yOffset; // Apply vertical offset
     int newFile = pos[1] + xOffset; // Apply horizontal offset
@@ -437,7 +806,7 @@ public class ChessEngine {
     return convertIntArrayToPosition(new int[] { newRank, newFile });
   }
 
-  public static String compressString(String boardP) {
+  public String compressString(String boardP) {
     int letterRepeat = 1;
     char letterRepeating = boardP.charAt(0);
     StringBuilder finalString = new StringBuilder();
@@ -460,7 +829,7 @@ public class ChessEngine {
     return finalString.toString();
   }
 
-  public static String decompressString(String boardP) {
+  public String decompressString(String boardP) {
     StringBuilder finalString = new StringBuilder();
     String digits = "0123456789";
 
@@ -490,7 +859,7 @@ public class ChessEngine {
     return finalString.toString();
   }
 
-  public static String[][] convertBoardTo2d(String board) {
+  public String[][] convertBoardTo2d(String board) {
     String[][] board2d = new String[8][8];
     int index = 0;
 
@@ -502,14 +871,14 @@ public class ChessEngine {
     return board2d;
   }
 
-  public static String isPieceAt(String position) {
+  public String isPieceAt(String position) {
     String[][] board2d = convertBoardTo2d(board);
     int[] pos = convertPositionToIntArray(position);
     String piece = board2d[pos[0]][pos[1]];
     return piece.equals(" ") ? " " : piece.equals(piece.toUpperCase()) ? "white" : "black";
   }
 
-  public static String convert2dBoardToString(String[][] board2d) {
+  public String convert2dBoardToString(String[][] board2d) {
     StringBuilder boardString = new StringBuilder();
     for (int i = 7; i >= 0; i--) { // Start from the bottom row (rank 8)
       for (int j = 0; j < 8; j++) {
@@ -530,7 +899,7 @@ public class ChessEngine {
     }
   }
 
-  public static boolean isValidPosition(String position) {
+  public boolean isValidPosition(String position) {
     if (position == null) {
       return false;
     }
@@ -538,7 +907,7 @@ public class ChessEngine {
     return pos[0] >= 0 && pos[0] < 8 && pos[1] >= 0 && pos[1] < 8;
   }
 
-  public static int[] convertPositionToIntArray(String position) {
+  public int[] convertPositionToIntArray(String position) {
     String letters = "HGFEDCBA";
     position = position.toUpperCase();
     String file = position.substring(0, 1); // File (A-H)
@@ -547,16 +916,16 @@ public class ChessEngine {
     return new int[] { rank, fileInt }; // Rank first, file second
   }
 
-  public static String convertIntArrayToPosition(int[] position) {
+  public String convertIntArrayToPosition(int[] position) {
     String letters = "HGFEDCBA";
     return letters.charAt(position[1]) + "" + (position[0] + 1); // File first, rank second
   }
 
-  public static String getRank(String position) {
+  public String getRank(String position) {
     return position.substring(1, 2);
   }
 
-  public static String getFile(String position) {
+  public String getFile(String position) {
     return position.substring(0, 1).toUpperCase();
   }
 
@@ -575,7 +944,7 @@ public class ChessEngine {
     }
   }
 
-  public static String simulateMove(String position1, String position2) {
+  public String simulateMove(String position1, String position2) {
     String[][] board2d = convertBoardTo2d(board);
     int[] pos1 = convertPositionToIntArray(position1);
     int[] pos2 = convertPositionToIntArray(position2);
@@ -587,7 +956,7 @@ public class ChessEngine {
   }
 
   // Reintroduced containsString method
-  public static boolean containsString(ArrayList<String> list, String target) {
+  public boolean containsString(ArrayList<String> list, String target) {
     return list.contains(target);
   }
 }
