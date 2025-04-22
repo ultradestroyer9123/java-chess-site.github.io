@@ -1,4 +1,6 @@
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.awt.Image;
 
@@ -13,6 +15,7 @@ public class UserInterface {
   static JPanel[][] squares = new JPanel[8][8];
   static ArrayList<JButton> avaliableMoves = new ArrayList<JButton>();
   static ArrayList<String> legalMoves = new ArrayList<String>();
+  static JButton[][] moveToButtons = new JButton[8][8];
 
   public UserInterface(ChessEngine engine) {
     this.engine = engine;
@@ -24,6 +27,10 @@ public class UserInterface {
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setSize(800, 800);
     frame.setLayout(new java.awt.GridLayout(8, 8));
+
+    JLayeredPane moveToButtonPane = new JLayeredPane();
+    moveToButtonPane.setSize(800,800);
+    frame.setLayout(null);
 
     ArrayList<piece> pieces = new ArrayList<>();
 
@@ -59,10 +66,19 @@ public class UserInterface {
     pieces.add(new piece(4, 0, "white", "k"));
     pieces.add(new piece(4, 7, "black", "k"));
 
+    
     // Create all squares first
     for (int row = 0; row < 8; row++) {
       for (int col = 0; col < 8; col++) {
         JPanel square = new JPanel();
+        JButton moveTo = new JButton("Click me!");
+        moveTo.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+              // Print a message when the button is clicked
+              System.out.println("Button clicked!");
+          }
+        });
         if ((row + col) % 2 == 0) {
           square.setBackground(white_square);
         } else {
@@ -70,6 +86,8 @@ public class UserInterface {
         }
         squares[col][row] = square;
         frame.add(square);
+        moveToButtons[col][row] = moveTo;
+        moveToButtonPane.add(moveTo);
       }
     }
 
@@ -89,32 +107,6 @@ public class UserInterface {
           System.out.println("Selected piece: " + p);
           legalMoves = engine.getLegalMoves(p.getPosition());
           System.out.println("Legal moves: " + legalMoves);
-          for (String legalMove : legalMoves) {
-            int[] buttonLocation = engine.convertPositionToIntArray(legalMove);
-            JButton moveButton = new JButton();
-            moveButton.setOpaque(false);
-            moveButton.setContentAreaFilled(false);
-            moveButton.setBorderPainted(false);
-            moveButton.setBounds(0, 0, 100, 100); // Fixed size for the button
-            moveButton.addActionListener(b -> {
-              engine.move(p.getPosition(), legalMove, legalMoves);
-              selectedPiece = null;
-              for (JButton button : avaliableMoves) {
-                button.getParent().remove(button);
-              }
-              p.setPosition(buttonLocation[0], buttonLocation[1]);
-              pieceLabel.getParent().remove(pieceLabel);
-              squares[buttonLocation[1]][buttonLocation[0]].add(pieceLabel);
-              avaliableMoves.clear();
-              frame.revalidate();
-              frame.repaint();
-            });
-          
-            squares[buttonLocation[1]][buttonLocation[0]].setLayout(null); // Use null layout for manual positioning
-            squares[buttonLocation[1]][buttonLocation[0]].add(moveButton, 0); // Add button below
-            squares[buttonLocation[1]][buttonLocation[0]].add(pieceLabel, 1); // Add piece above
-            avaliableMoves.add(moveButton);
-          }
         }
       });
       squares[col][row].add(pieceLabel);
