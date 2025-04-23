@@ -14,7 +14,7 @@ public class ChessEngine {
     String enemy = color.equals("white") ? "black" : "white";
     String type = piece.toLowerCase();
     String rank = getRank(pieceAt);
-    System.out.println(piece + color + enemy + type + rank);
+    System.out.println(piece + color + pieceAt);
     if (type.equals("p")) {
       // diagnal moves
       if (isValidPosition(getPositionOffsetOf(pieceAt, -1, 1))
@@ -401,7 +401,7 @@ public class ChessEngine {
   }
 
   public ChessEngine() {
-    board = "rnbkqbnrpppppppp                                PPPPPPPPRNBKQBNR";
+    board = "rhbqkbhrpppppppp                                PPPPPPPPRHBQKBHR";
   }
 
   public String getBoard() {

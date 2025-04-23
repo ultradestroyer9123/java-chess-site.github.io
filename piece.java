@@ -70,4 +70,13 @@ public class piece {
     this.posX = posX;
     this.posY = posY;
   }
+
+  public String toString() {
+    return "Piece{" +
+            "posX=" + posX +
+            ", posY=" + posY +
+            ", color='" + color + '\'' +
+            ", type='" + type + '\'' +
+            '}';
+  }
 }
