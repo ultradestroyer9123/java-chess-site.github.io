@@ -3,7 +3,12 @@ import java.util.ArrayList;
 public class ChessEngine {
   private String board;
   private int turn = 0;
-  private String color = "white";
+  private String color;
+
+  public ChessEngine(String color) {
+    this.color = color;
+    board = "rhbkqbhrpppppppp                                PPPPPPPPRHBKQBHR";
+  }
 
   public ArrayList<String> getLegalMoves(String pieceAt) {
     ArrayList<String> legalMoves = new ArrayList<>();
@@ -14,398 +19,110 @@ public class ChessEngine {
     String enemy = color.equals("white") ? "black" : "white";
     String type = piece.toLowerCase();
     String rank = getRank(pieceAt);
-    System.out.println(piece + color + pieceAt);
+  
     if (type.equals("p")) {
-      // diagnal moves
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, 1))
-          && color.equals("white") && isPieceAt(getPositionOffsetOf(pieceAt, -1, 1)).equals("black")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, 1));
+      // Pawn diagonal captures
+      String leftCapture = getPositionOffsetOf(pieceAt, -1, color.equals("white") ? 1 : -1);
+      String rightCapture = getPositionOffsetOf(pieceAt, 1, color.equals("white") ? 1 : -1);
+  
+      if (leftCapture != null && isValidPosition(leftCapture)
+          && isPieceAt(leftCapture).equals(enemy)
+          && !isIllegalMove(turn, color, pieceAt, leftCapture)) {
+        legalMoves.add(leftCapture);
       }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, 1))
-          && color.equals("white") && isPieceAt(getPositionOffsetOf(pieceAt, 1, 1)).equals("black")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, 1));
+      if (rightCapture != null && isValidPosition(rightCapture)
+          && isPieceAt(rightCapture).equals(enemy)
+          && !isIllegalMove(turn, color, pieceAt, rightCapture)) {
+        legalMoves.add(rightCapture);
       }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, -1))
-          && color.equals("black") && isPieceAt(getPositionOffsetOf(pieceAt, -1, -1)).equals("white")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, 1));
+  
+      // Pawn forward moves
+      String forwardOne = getPositionOffsetOf(pieceAt, 0, color.equals("white") ? 1 : -1);
+      if (forwardOne != null && isValidPosition(forwardOne)
+          && isPieceAt(forwardOne).equals(" ")
+          && !isIllegalMove(turn, color, pieceAt, forwardOne)) {
+        legalMoves.add(forwardOne);
       }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, -1))
-          && color.equals("black") && isPieceAt(getPositionOffsetOf(pieceAt, 1, -1)).equals("white")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, 1));
-      }
-      // forward moves
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 0, 1))
-          && color.equals("white") && isPieceAt(getPositionOffsetOf(pieceAt, 0, 1)).equals(" ")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 0, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 0, 1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 0, 2))
-          && color.equals("white") && isPieceAt(getPositionOffsetOf(pieceAt, 0, 2)).equals(" ") && rank.equals("2")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 0, 2))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 0, 2));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 0, -1))
-          && color.equals("black") && isPieceAt(getPositionOffsetOf(pieceAt, 0, -1)).equals(" ")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 0, -1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 0, -1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 0, -2))
-          && color.equals("black") && isPieceAt(getPositionOffsetOf(pieceAt, 0, -2)).equals(" ") && rank.equals("7")
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 0, -2))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 0, -2));
+  
+      // Pawn double move
+      if ((rank.equals("2") && color.equals("white")) || (rank.equals("7") && color.equals("black"))) {
+        String forwardTwo = getPositionOffsetOf(pieceAt, 0, color.equals("white") ? 2 : -2);
+        if (forwardTwo != null && isValidPosition(forwardTwo)
+            && isPieceAt(forwardTwo).equals(" ")
+            && isPieceAt(forwardOne).equals(" ") // Ensure no piece blocks the path
+            && !isIllegalMove(turn, color, pieceAt, forwardTwo)) {
+          legalMoves.add(forwardTwo);
+        }
       }
     } else if (type.equals("n")) {
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -2, 1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -2, 1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -2, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -2, 1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -2, -1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -2, -1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -2, -1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -2, -1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 2, 1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, 2, 1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 2, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 2, 1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 2, -1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, 2, -1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 2, -1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 2, -1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, 2))
-          && isPieceAt(getPositionOffsetOf(pieceAt, 1, 2)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, 2))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, 2));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, -2))
-          && isPieceAt(getPositionOffsetOf(pieceAt, 1, -2)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, -2))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, -2));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, 2))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -1, 2)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, 2))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, 2));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, -2))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -1, -2)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, -2))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, -2));
-      }
-    } else if (type.equals("b")) {
-      // top left
-      int offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, -offset, offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
+      // Knight moves
+      int[][] knightOffsets = {
+        {-2, 1}, {-2, -1}, {2, 1}, {2, -1},
+        {1, 2}, {1, -2}, {-1, 2}, {-1, -2}
+      };
+      for (int[] offset : knightOffsets) {
+        String target = getPositionOffsetOf(pieceAt, offset[0], offset[1]);
+        if (target != null && isValidPosition(target)
+            && !isPieceAt(target).equals(color)
+            && !isIllegalMove(turn, color, pieceAt, target)) {
+          legalMoves.add(target);
         }
       }
-      // top right
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, offset, offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // bottom left
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, -offset, -offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // bottom right
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, offset, -offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-    } else if (type.equals("r")) {
-      // top
-      int offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, 0, offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // right
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, offset, 0);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // down
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, 0, -offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // left
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, -offset, 0);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
+    } else if (type.equals("b") || type.equals("r") || type.equals("q")) {
+      // Bishop, Rook, and Queen moves
+      int[][] directions = type.equals("b") ? new int[][]{{-1, 1}, {1, 1}, {-1, -1}, {1, -1}}
+          : type.equals("r") ? new int[][]{{0, 1}, {1, 0}, {0, -1}, {-1, 0}}
+          : new int[][]{{-1, 1}, {1, 1}, {-1, -1}, {1, -1}, {0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+      for (int[] direction : directions) {
+        int offset = 1;
+        while (true) {
+          String target = getPositionOffsetOf(pieceAt, direction[0] * offset, direction[1] * offset);
+          if (target == null || !isValidPosition(target)) break;
+  
+          if (isPieceAt(target).equals(" ")) {
+            if (!isIllegalMove(turn, color, pieceAt, target)) {
+              legalMoves.add(target);
+            }
+          } else if (isPieceAt(target).equals(enemy)) {
+            if (!isIllegalMove(turn, color, pieceAt, target)) {
+              legalMoves.add(target);
+            }
+            break;
+          } else {
+            break;
+          }
+          offset++;
         }
       }
     } else if (type.equals("k")) {
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, 0))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -1, 0)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, 0))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, 0));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, 0)) && isPieceAt(getPositionOffsetOf(pieceAt, 1, 0)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, 0))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, 0));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 0, 1)) && isPieceAt(getPositionOffsetOf(pieceAt, 0, 1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 0, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 0, 1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 0, -1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, 0, -1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 0, -1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 0, -1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, 1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -1, 1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, 1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, 1)) && isPieceAt(getPositionOffsetOf(pieceAt, 1, 1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, 1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, 1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, -1, -1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, -1, -1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, -1, -1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, -1, -1));
-      }
-      if (isValidPosition(getPositionOffsetOf(pieceAt, 1, -1))
-          && isPieceAt(getPositionOffsetOf(pieceAt, 1, -1)) != color
-          && !isIllegalMove(turn, color, pieceAt, getPositionOffsetOf(pieceAt, 1, -1))) {
-        legalMoves.add(getPositionOffsetOf(pieceAt, 1, -1));
-      }
-    } else if (type.equals("q")) {
-      // top left
-      int offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, -offset, offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // top right
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, offset, offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // bottom left
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, -offset, -offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // bottom right
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, offset, -offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // top
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, 0, offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // right
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, offset, 0);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // down
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, 0, -offset);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
-        }
-      }
-      // left
-      offset = 0;
-      while (true) {
-        offset++;
-        String posOffsetOf = getPositionOffsetOf(pieceAt, -offset, 0);
-        if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf) == enemy
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-          break;
-        } else if (isValidPosition(posOffsetOf) && isPieceAt(posOffsetOf).equals(" ")
-            && !isIllegalMove(turn, color, pieceAt, posOffsetOf)) {
-          legalMoves.add(posOffsetOf);
-        } else {
-          break;
+      // King moves
+      int[][] kingOffsets = {
+        {-1, 0}, {1, 0}, {0, 1}, {0, -1},
+        {-1, 1}, {1, 1}, {-1, -1}, {1, -1}
+      };
+      for (int[] offset : kingOffsets) {
+        String target = getPositionOffsetOf(pieceAt, offset[0], offset[1]);
+        if (target != null && isValidPosition(target)
+            && !isPieceAt(target).equals(color)
+            && !isIllegalMove(turn, color, pieceAt, target)) {
+          legalMoves.add(target);
         }
       }
     }
+  
     return legalMoves;
-  }
-
-  public ChessEngine() {
-    board = "rhbqkbhrpppppppp                                PPPPPPPPRHBQKBHR";
   }
 
   public String getBoard() {
     return board;
+  }
+
+  public void add1ToTurn() {
+    turn++;
+  }
+
+  public void setBoard(String newBoard) {
+    this.board = newBoard;
   }
 
   public int getTurn() {
@@ -888,14 +605,39 @@ public class ChessEngine {
     return boardString.toString();
   }
 
-  public void get2dBoardAsString() {
+  public void print2dBoardAsString(String fromAngle) {
     String[][] board2d = convertBoardTo2d(board);
-    for (int x = 0; x < 8; x++) {
-      for (int y = 0; y < 8; y++) {
-        System.out.print(board2d[x][y].equals(" ") ? "*" : board2d[x][y]);
-        System.out.print(" ");
+    if (fromAngle.equals("white")) {
+      for (int x = 7; x >=0; x--) {
+        for (int y = 7; y >= 0; y--) {
+          System.out.print(board2d[x][y].equals(" ") ? "*" : board2d[x][y]);
+          System.out.print(" ");
+        }
+        System.out.println();
       }
-      System.out.println();
+    } else {
+      for (int x = 0; x < 8; x++) {
+        for (int y = 0; y < 8; y++) {
+          System.out.print(board2d[x][y].equals(" ") ? "*" : board2d[x][y]);
+          System.out.print(" ");
+        }
+        System.out.println();
+      }
+    }
+  }
+
+  public String[][] get2dBoardAsString(String fromAngle) {
+    String[][] board2d = convertBoardTo2d(board);
+    String[][] board2Copy = new String[8][8];
+    if (fromAngle.equals("white")) {
+      for (int x = 7; x >=0; x--) {
+        for (int y = 7; y >= 0; y--) {
+          board2Copy[7-x][7-y] = board2d[x][y];
+        }
+      }
+      return board2Copy;
+    } else {
+      return board2d;
     }
   }
 
