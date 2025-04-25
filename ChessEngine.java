@@ -626,7 +626,7 @@ public class ChessEngine {
     }
   }
 
-  public String[][] get2dBoardAsString(String fromAngle) {
+  public String[][] get2dBoardAsColor(String fromAngle) {
     String[][] board2d = convertBoardTo2d(board);
     String[][] board2Copy = new String[8][8];
     if (fromAngle.equals("white")) {
