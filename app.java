@@ -5,7 +5,7 @@ public class app {
     String username = "Benjamin";
 
     ChessEngine engine = new ChessEngine("white");
-    UserInterface ui = new UserInterface(engine.get2dBoardAsString(engine.getColor()));
+    UserInterface ui = new UserInterface(engine);
     UserToUser server = new UserToUser(username);
     String previous_board = engine.getBoard();
     server.createGame();
