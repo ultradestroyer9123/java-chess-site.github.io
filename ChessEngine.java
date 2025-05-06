@@ -508,7 +508,9 @@ public class ChessEngine {
     return turn % 2 == 0 ? "white" : "black";
   }
 
-
+  public String convert2NumsToPosition(int x, int y) {
+    return ("ABCDEFGH").charAt(x) + "" + Integer.toString(y);
+  }
 
   public String getPositionOffsetOf(String position, int xOffset, int yOffset) {
     int[] pos = convertPositionToIntArray(position);
