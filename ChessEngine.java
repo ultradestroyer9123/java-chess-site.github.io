@@ -5,6 +5,8 @@ public class ChessEngine {
   private int turn = 0;
   private String color;
 
+  public String finalGameState = "running";
+
   public ChessEngine(String color) {
     this.color = color;
     board = "rhbkqbhrpppppppp                                PPPPPPPPRHBKQBHR";
@@ -157,6 +159,30 @@ public class ChessEngine {
 
     // Check if any piece of the opposite color can capture the king
     return pieceOfOppositeColorCanCapturePosition(boardP, chessPos, oppositeColor);
+  }
+
+  public String isCheckMateOrStalemate() {
+    boolean noMovesLeft = true;
+    for (int y = 0; y < 8; y++) {
+      for (int x = 0; x < 8; x++) {
+        if (getLegalMoves(convert2NumsToPosition(x, y)).size() > 0) {
+          noMovesLeft = false;
+        }
+      }
+    }
+    if (inCheck(board, color) && noMovesLeft) {
+      finalGameState = "checkmate - " + color;
+      return "checkmate";
+    } else if (noMovesLeft) {
+      finalGameState = "stalemate";
+      return "stalemate";
+    } else {
+      return "false";
+    }
+  }
+
+  public String getFinalGameState() {
+    return finalGameState;
   }
 
   public boolean pieceOfOppositeColorCanCapturePosition(String boardP, String positionOfCapture, String color) {

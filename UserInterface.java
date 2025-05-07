@@ -16,6 +16,11 @@ public class UserInterface {
   ArrayList<JButton> move_buttons = new ArrayList<>();
   JLabel[][] piece_labels = new JLabel[8][8];
 
+  public void refresh() {
+    frame.revalidate();
+    frame.repaint();
+  }
+  
   public UserInterface(ChessEngine engine) {
     this.engine = engine;
     this.color = engine.getColor();
@@ -38,11 +43,7 @@ public class UserInterface {
         frame.add(square);
       }
     }
-  }
-
-  public void refresh() {
-    frame.revalidate();
-    frame.repaint();
+    refresh();
   }
 
   public static String getPathOfImage(String piece) {
@@ -50,11 +51,13 @@ public class UserInterface {
   }
 
   public void changePieceAt(String piece, int x, int y) {
-    int final_x = x;
-    int final_y = y;
+    int new_x, new_y;
     if (color.equals("black")) {
-      final_x = 7 - x;
-      final_y = 7 - y;
+      new_x = 7 - x;
+      new_y = 7 - y;
+    } else {
+      new_x = x;
+      new_y = y;
     }
 
     if (piece_labels[x][y] != null) {
@@ -64,11 +67,11 @@ public class UserInterface {
     JLabel pieceLabel = new JLabel(new ImageIcon(new ImageIcon(getPathOfImage(piece)).getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH)));
     pieceLabel.setBounds(x * square_size, y * square_size, square_size, square_size);
     frame.add(pieceLabel);
-    piece_labels[final_x][final_y] = pieceLabel;
+    piece_labels[new_x][new_y] = pieceLabel;
     pieceLabel.addMouseListener(new java.awt.event.MouseAdapter() {
       @Override
       public void mouseClicked(java.awt.event.MouseEvent e) {
-        ArrayList<String> moves = engine.getLegalMoves(engine.convert2NumsToPosition(final_x, final_y));
+        ArrayList<String> moves = engine.getLegalMoves(engine.convert2NumsToPosition(new_x, new_y));
         for (JButton button : move_buttons) {
           frame.remove(button);
         }
