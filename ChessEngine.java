@@ -56,7 +56,7 @@ public class ChessEngine {
           legalMoves.add(forwardTwo);
         }
       }
-    } else if (type.equals("n")) {
+    } else if (type.equals("h")) {
       // Knight moves
       int[][] knightOffsets = {
         {-2, 1}, {-2, -1}, {2, 1}, {2, -1},
@@ -204,7 +204,7 @@ public class ChessEngine {
                 return true;
             }
           }
-        } else if (pieceLowered.equals("n")) {
+        } else if (pieceLowered.equals("h")) {
           if (isValidAndEquals(piecePos, positionOfCapture, -2, 1) || isValidAndEquals(piecePos, positionOfCapture, -2, -1)
               || isValidAndEquals(piecePos, positionOfCapture, 2, 1) || isValidAndEquals(piecePos, positionOfCapture, 2, -1)
               || isValidAndEquals(piecePos, positionOfCapture, 1, 2) || isValidAndEquals(piecePos, positionOfCapture, 1, -2)
@@ -534,8 +534,10 @@ public class ChessEngine {
     return turn % 2 == 0 ? "white" : "black";
   }
 
-  public String convert2NumsToPosition(int x, int y) {
-    return ("ABCDEFGH").charAt(x) + "" + Integer.toString(y);
+  public String convert2NumsToPosition(int row, int col) {
+    char file = (char) ('a' + col);       // 'a' through 'h'
+    int rank = 8 - row;                   // 8 at row 0, 1 at row 7
+    return "" + file + rank;
   }
 
   public String getPositionOffsetOf(String position, int xOffset, int yOffset) {
@@ -678,7 +680,7 @@ public class ChessEngine {
   }
 
   public int[] convertPositionToIntArray(String position) {
-    String letters = "HGFEDCBA";
+    String letters = "ABCDEFGH";
     position = position.toUpperCase();
     String file = position.substring(0, 1); // File (A-H)
     int rank = Integer.parseInt(position.substring(1, 2)) - 1; // Rank (1-8)
@@ -687,7 +689,7 @@ public class ChessEngine {
   }
 
   public String convertIntArrayToPosition(int[] position) {
-    String letters = "HGFEDCBA";
+    String letters = "ABCDEFGH";
     return letters.charAt(position[1]) + "" + (position[0] + 1); // File first, rank second
   }
 
